@@ -1,0 +1,7 @@
+services:
+  doc_pars:
+    build: .
+    container_name: doc_pars
+    ports:
+      - "3002:8000"
+    restart: unless-stopped 
