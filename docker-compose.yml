@@ -1,7 +1,12 @@
+version: "3.8"
+
 services:
   doc_pars:
     build: .
     container_name: doc_pars
     ports:
       - "3002:8000"
-    restart: unless-stopped 
+    volumes:
+      - .:/app
+    restart: unless-stopped
+    working_dir: /app
