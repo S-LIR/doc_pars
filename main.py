@@ -10,8 +10,12 @@ from docx import Document
 from openpyxl import load_workbook
 import xlrd 
 import extract_msg
+import base64
+from pydantic import BaseModel
 
 app = FastAPI()
+
+MAX_TEXT_LENGTH = 10000
 
 @app.get("/test")
 def test():
@@ -102,7 +106,25 @@ async def parse_files(files: List[UploadFile] = File(...)):
         text = parse_file(tmp_path)
         results.append({
             "filename": upload.filename,
-            "text": text[:6000]  # можно убрать ограничение, если нужно
+            "text": text[:MAX_TEXT_LENGTH]  # можно убрать ограничение, если нужно
         })
 
     return JSONResponse(content={"parsed_files": results})
+
+class FileB64(BaseModel):
+    filename: str
+    filedata: str
+
+@app.post("/parse_base64")
+def parse_file_base64(item: FileB64):
+    try:
+        data = base64.b64decode(item.filedata)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=item.filename) as tmp:
+            tmp.write(data)
+            tmp_path = tmp.name
+
+        text = parse_file(tmp_path)
+        os.unlink(tmp_path)
+        return JSONResponse(content={"filename": item.filename, "text": text[:MAX_TEXT_LENGTH]})
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
