@@ -10,3 +10,5 @@ services:
       - .:/app
     restart: unless-stopped
     working_dir: /app
+    env_file:
+      - .env
